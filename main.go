@@ -21,6 +21,11 @@ func ReturnRelease(w http.ResponseWriter, r *http.Request) {
         w.Write([]byte(releaseString))
 }
 
+func ReturnHealth(w http.ResponseWriter, r *http.Request) {
+        health := "Healthy"
+        w.Write([]byte(health))
+}
+
 func ReverseWord(w http.ResponseWriter, r *http.Request) {
         decoder := json.NewDecoder(r.Body)
         var word Input
@@ -73,5 +78,6 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/", ReverseWord).Methods("POST")
         router.HandleFunc("/", ReturnRelease).Methods("GET")
+        router.HandleFunc("/health", ReturnHealth).Methods("GET")
 	log.Fatal(http.ListenAndServe(":" + port, router))
 }
