@@ -33,7 +33,7 @@ var (
 			Name: "endpoints_accessed",
 			Help: "Total number of accessed to a given endpoint",
 		},
-		[]string{"endpoint"},
+		[]string{"accessed_endpoint"},
 	)
 )
 
