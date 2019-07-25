@@ -45,6 +45,17 @@ func ReturnRelease(w http.ResponseWriter, r *http.Request) {
 	endpointsAccessed.WithLabelValues("release").Inc()
 }
 
+// ReturnHostname returns the hostname for the node where the app is running
+func ReturnHostname(w http.ResponseWriter, r *http.Request) {
+	hostname, err := os.Hostname()
+	if err != nil {
+		hostname = "Unknown"
+	}
+	hostnameString := "Hostname: " + hostname
+	w.Write([]byte(hostnameString))
+	endpointsAccessed.WithLabelValues("hostname").Inc()
+}
+
 //ReturnHealth returns healthy string, can be used for monitoring pourposes
 func ReturnHealth(w http.ResponseWriter, r *http.Request) {
 	health := "Healthy"
@@ -111,6 +122,7 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/", ReverseWord).Methods("POST")
 	router.HandleFunc("/", ReturnRelease).Methods("GET")
+	router.HandleFunc("/hostname", ReturnHostname).Methods("GET")
 	router.HandleFunc("/health", ReturnHealth).Methods("GET")
 	router.Handle("/metrics", promhttp.Handler()).Methods("GET")
 	log.Fatal(http.ListenAndServe(":"+port, router))
