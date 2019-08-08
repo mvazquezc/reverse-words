@@ -41,7 +41,7 @@ var (
 func ReturnRelease(w http.ResponseWriter, r *http.Request) {
 	release := getEnv("RELEASE", "NotSet")
 	releaseString := "Reverse Words Release: " + release
-	w.Write([]byte(releaseString))
+	w.Write([]byte(releaseString + "\n"))
 	endpointsAccessed.WithLabelValues("release").Inc()
 }
 
@@ -52,14 +52,14 @@ func ReturnHostname(w http.ResponseWriter, r *http.Request) {
 		hostname = "Unknown"
 	}
 	hostnameString := "Hostname: " + hostname
-	w.Write([]byte(hostnameString))
+	w.Write([]byte(hostnameString + "\n"))
 	endpointsAccessed.WithLabelValues("hostname").Inc()
 }
 
 //ReturnHealth returns healthy string, can be used for monitoring pourposes
 func ReturnHealth(w http.ResponseWriter, r *http.Request) {
 	health := "Healthy"
-	w.Write([]byte(health))
+	w.Write([]byte(health + "\n"))
 	endpointsAccessed.WithLabelValues("health").Inc()
 }
 
@@ -86,12 +86,13 @@ func ReverseWord(w http.ResponseWriter, r *http.Request) {
 	totalWordsReversed.Inc()
 	output := Output{reverseWord}
 	js, err := json.Marshal(output)
+        js = append(js, "\n"...)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
+	w.Write([]byte(js))
 	endpointsAccessed.WithLabelValues("reverseword").Inc()
 }
 
