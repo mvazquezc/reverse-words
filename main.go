@@ -86,7 +86,7 @@ func ReverseWord(w http.ResponseWriter, r *http.Request) {
 	totalWordsReversed.Inc()
 	output := Output{reverseWord}
 	js, err := json.Marshal(output)
-        js = append(js, "\n"...)
+	js = append(js, "\n"...)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -116,7 +116,8 @@ func getEnv(varName, defaultValue string) string {
 func main() {
 	release := getEnv("RELEASE", "NotSet")
 	port := getEnv("APP_PORT", "8080")
-	log.Println("Starting Reverse Api. Release:", release)
+	version := "v0.0.1"
+	log.Println("Starting Reverse Api", version, " Release:", release)
 	log.Println("Listening on port", port)
 	prometheus.MustRegister(totalWordsReversed)
 	prometheus.MustRegister(endpointsAccessed)
