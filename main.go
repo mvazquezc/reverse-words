@@ -116,7 +116,7 @@ func getEnv(varName, defaultValue string) string {
 func main() {
 	release := getEnv("RELEASE", "NotSet")
 	port := getEnv("APP_PORT", "8080")
-	version := "v0.0.2"
+	version := "v0.0.3"
 	log.Println("Starting Reverse Api", version, " Release:", release)
 	log.Println("Listening on port", port)
 	prometheus.MustRegister(totalWordsReversed)
