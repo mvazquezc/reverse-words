@@ -37,10 +37,12 @@ var (
 	)
 )
 
+var version = "v0.0.2"
+
 // ReturnRelease returns the release configured by the user
 func ReturnRelease(w http.ResponseWriter, r *http.Request) {
 	release := getEnv("RELEASE", "NotSet")
-	releaseString := "Reverse Words Release: " + release
+	releaseString := "Reverse Words Release: " + release + ". App version: " + version
 	w.Write([]byte(releaseString + "\n"))
 	endpointsAccessed.WithLabelValues("release").Inc()
 }
@@ -116,8 +118,7 @@ func getEnv(varName, defaultValue string) string {
 func main() {
 	release := getEnv("RELEASE", "NotSet")
 	port := getEnv("APP_PORT", "8080")
-	version := "v0.0.3"
-	log.Println("Starting Reverse Api", version, " Release:", release)
+	log.Println("Starting Reverse Api", version, "Release:", release)
 	log.Println("Listening on port", port)
 	prometheus.MustRegister(totalWordsReversed)
 	prometheus.MustRegister(endpointsAccessed)
