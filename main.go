@@ -11,10 +11,12 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+// Input word
 type Input struct {
 	Word string `json:"word,omitempty"`
 }
 
+// Output reverse word
 type Output struct {
 	ReverseWord string `json:"reverse_word,omitempty"`
 }
