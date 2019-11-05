@@ -14,6 +14,7 @@ import (
 type Input struct {
 	Word string `json:"word,omitempty"`
 }
+
 type Output struct {
 	ReverseWord string `json:"reverse_word,omitempty"`
 }
