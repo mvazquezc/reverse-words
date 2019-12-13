@@ -18,3 +18,15 @@ curl http://127.0.0.1:8080/ -X GET
 ```sh
 curl http://127.0.0.1:8080/health -X GET
 ```
+
+**Get Hostname**
+
+```sh
+curl http://127.0.0.1:8080/hostname -X GET
+```
+
+**Get Metrics**
+
+```sh
+curl http://127.0.0.1:8080/metrics -X GET
+```
