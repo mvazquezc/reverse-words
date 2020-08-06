@@ -5,6 +5,7 @@ import (
     "net/http"
     "net/http/httptest"
     "strings"
+    "os"
 )
 
 func TestReturnRelease(t *testing.T) {
@@ -21,6 +22,27 @@ func TestReturnRelease(t *testing.T) {
     expectedRelease := "NotSet"
     if ! strings.Contains(rr.Body.String(), expectedRelease) {
         t.Errorf("ReturnRelease returned wrong release, expected %v, got %v", expectedRelease, rr.Body.String())
+    }
+}
+
+func TestReturnHostname(t *testing.T) {
+    req, err := http.NewRequest("GET", "/hostname", nil)
+    if err != nil {
+        t.Fatal(err)
+    }
+    rr := httptest.NewRecorder()
+    handler := http.HandlerFunc(ReturnHostname)
+    handler.ServeHTTP(rr, req)
+    if rr.Code != http.StatusOK {
+        t.Errorf("ReturnHostname returned wrong status code, expected %v, got %v", http.StatusOK, rr.Code)
+    }
+    expectedHostname, err := os.Hostname()
+    if err != nil {
+        t.Fatal(err)
+    }
+
+    if ! strings.Contains(rr.Body.String(), expectedHostname) {
+        t.Errorf("ReturnHostname returned wrong hostname, expected %v, got %v", expectedHostname, rr.Body.String())
     }
 }
 
@@ -58,6 +80,18 @@ func TestReverseWord(t *testing.T) {
 
     if ! strings.Contains(rr.Body.String(), expectedResponse) {
         t.Errorf("ReverseWord returned wrong word, expected %v, got %v", expectedResponse, rr.Body.String())
+    }
+}
+
+func TestGetEnv(t *testing.T) {
+    os.Setenv("FOO", "BAR")
+    result := getEnv("FOO", "DEFAULT_VALUE")
+    if result != "BAR" {
+        t.Errorf("TestGetEnv with existing variable failed, expected %v, got %v", "BAR", result)
+    }
+    result = getEnv("NOT_EXISTING_VAR", "DEFAULT_VALUE")
+    if result != "DEFAULT_VALUE" {
+        t.Errorf("TestGetEnv with default value failed, expected %v, got %v", "DEFAULT_VALUE", result)
     }
 }
 
