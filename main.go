@@ -24,7 +24,7 @@ type Output struct {
 var (
 	totalWordsReversed = prometheus.NewCounter(
 		prometheus.CounterOpts{
-			Name: "total_reversed_words",
+			Name: "reversewords_reversed_words_total",
 			Help: "Total number of reversed words",
 		},
 	)
@@ -33,7 +33,7 @@ var (
 var (
 	endpointsAccessed = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "endpoints_accessed",
+			Name: "reversewords_endpoints_accessed_total",
 			Help: "Total number of accessed to a given endpoint",
 		},
 		[]string{"accessed_endpoint"},
