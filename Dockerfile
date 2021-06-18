@@ -1,4 +1,4 @@
-FROM https://registry.hub.docker.com/golang:latest
+FROM registry.hub.docker.com/golang:latest
 WORKDIR /go/src/github.com/mvazquezc/reverse-words/
 COPY main.go .
 RUN go get github.com/gorilla/mux && go get github.com/prometheus/client_golang/prometheus/promhttp
