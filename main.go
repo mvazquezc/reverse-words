@@ -2,13 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // Input word
@@ -40,7 +40,7 @@ var (
 	)
 )
 
-var version = "v0.0.27"
+const version = "v0.0.27"
 
 // ReturnRelease returns the release configured by the user
 func ReturnRelease(w http.ResponseWriter, r *http.Request) {
@@ -126,6 +126,19 @@ func reverse(s string) string {
 	return string(runes)
 }
 
+func listen(port string, registry *prometheus.Registry) {
+	log.Println("Listening on port", port)
+
+	router := mux.NewRouter()
+	router.HandleFunc("/", ReverseWord).Methods("POST")
+	router.HandleFunc("/", ReturnRelease).Methods("GET")
+	router.HandleFunc("/hostname", ReturnHostname).Methods("GET")
+	router.HandleFunc("/health", ReturnHealth).Methods("GET")
+	router.Handle("/fullmetrics", promhttp.Handler()).Methods("GET") // Default prometheus collector, includes other stuff on top of our custom registers
+	router.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{})).Methods("GET")
+	log.Fatal(http.ListenAndServe(":"+port, router))
+}
+
 //getEnv returns the value for a given Env Var
 func getEnv(varName, defaultValue string) string {
 	if varValue, ok := os.LookupEnv(varName); ok {
@@ -138,14 +151,14 @@ func main() {
 	release := getEnv("RELEASE", "NotSet")
 	port := getEnv("APP_PORT", "8080")
 	log.Println("Starting Reverse Api", version, "Release:", release)
-	log.Println("Listening on port", port)
-	prometheus.MustRegister(totalWordsReversed)
-	prometheus.MustRegister(endpointsAccessed)
-	router := mux.NewRouter()
-	router.HandleFunc("/", ReverseWord).Methods("POST")
-	router.HandleFunc("/", ReturnRelease).Methods("GET")
-	router.HandleFunc("/hostname", ReturnHostname).Methods("GET")
-	router.HandleFunc("/health", ReturnHealth).Methods("GET")
-	router.Handle("/metrics", promhttp.Handler()).Methods("GET")
-	log.Fatal(http.ListenAndServe(":"+port, router))
+	// Custom registry, this will be used by the /metrics endpoint and will only show the app metrics
+	registry := prometheus.NewRegistry()
+	// Add our custom registers to our custom registry
+	registry.MustRegister(totalWordsReversed, endpointsAccessed)
+	// Add our custom registers to the default register, this will be used by the /fullmetrics endpoints
+	prometheus.MustRegister(totalWordsReversed, endpointsAccessed)
+	// Remove the go/process collectors from the default prometheus registry, this can be used to remove collectos from the default prometheus registry
+	//prometheus.Unregister(collectors.NewGoCollector())
+	//prometheus.Unregister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
+	listen(port, registry)
 }
