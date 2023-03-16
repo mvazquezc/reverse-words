@@ -2,13 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/go-chi/chi/v5"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 // Input word
@@ -69,7 +68,7 @@ func ReturnHostname(w http.ResponseWriter, r *http.Request) {
 	endpointsAccessed.WithLabelValues("hostname").Inc()
 }
 
-//ReturnHealth returns healthy string, can be used for monitoring pourposes
+// ReturnHealth returns healthy string, can be used for monitoring pourposes
 func ReturnHealth(w http.ResponseWriter, r *http.Request) {
 	health := "Healthy"
 	_, err := w.Write([]byte(health + "\n"))
@@ -80,7 +79,7 @@ func ReturnHealth(w http.ResponseWriter, r *http.Request) {
 	endpointsAccessed.WithLabelValues("health").Inc()
 }
 
-//ReverseWord returns a reversed word based on an input word
+// ReverseWord returns a reversed word based on an input word
 func ReverseWord(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var word Input
@@ -117,7 +116,7 @@ func ReverseWord(w http.ResponseWriter, r *http.Request) {
 	endpointsAccessed.WithLabelValues("reverseword").Inc()
 }
 
-//reverse returns input string reversed
+// reverse returns input string reversed
 func reverse(s string) string {
 	runes := []rune(s)
 	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
@@ -128,18 +127,17 @@ func reverse(s string) string {
 
 func listen(port string, registry *prometheus.Registry) {
 	log.Println("Listening on port", port)
-
-	router := mux.NewRouter()
-	router.HandleFunc("/", ReverseWord).Methods("POST")
-	router.HandleFunc("/", ReturnRelease).Methods("GET")
-	router.HandleFunc("/hostname", ReturnHostname).Methods("GET")
-	router.HandleFunc("/health", ReturnHealth).Methods("GET")
-	router.Handle("/fullmetrics", promhttp.Handler()).Methods("GET") // Default prometheus collector, includes other stuff on top of our custom registers
-	router.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{})).Methods("GET")
+	router := chi.NewRouter()
+	router.Get("/", ReturnRelease)
+	router.Post("/", ReverseWord)
+	router.Get("/hostname", ReturnHostname)
+	router.Get("/health", ReturnHealth)
+	router.Mount("/fullmetrics", promhttp.Handler()) // Default prometheus collector, includes other stuff on top of our custom registers
+	router.Mount("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
 	log.Fatal(http.ListenAndServe(":"+port, router))
 }
 
-//getEnv returns the value for a given Env Var
+// getEnv returns the value for a given Env Var
 func getEnv(varName, defaultValue string) string {
 	if varValue, ok := os.LookupEnv(varName); ok {
 		return varValue
