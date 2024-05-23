@@ -17,4 +17,4 @@ test: get-dependencies
 
 get-dependencies:
 	$(info Downloading dependencies)
-	go mod download
+	go mod tidy
