@@ -2,12 +2,13 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/go-chi/chi/v5"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // Input word
@@ -41,10 +42,15 @@ var (
 
 const version = "v0.0.27"
 
+var (
+	buildTime = "NotSet"
+	gitCommit = "NotSet"
+)
+
 // ReturnRelease returns the release configured by the user
 func ReturnRelease(w http.ResponseWriter, r *http.Request) {
 	release := getEnv("RELEASE", "NotSet")
-	releaseString := "Reverse Words Release: " + release + ". App version: " + version
+	releaseString := "Reverse Words Release: " + release + ". App version: " + version + ". Build Time: " + buildTime + ". Git Commit: " + gitCommit
 	_, err := w.Write([]byte(releaseString + "\n"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -148,7 +154,7 @@ func getEnv(varName, defaultValue string) string {
 func main() {
 	release := getEnv("RELEASE", "NotSet")
 	port := getEnv("APP_PORT", "8080")
-	log.Println("Starting Reverse Api", version, "Release:", release)
+	log.Println("Starting Reverse Api", version, "Release:", release, "Commit", gitCommit, "Build", buildTime)
 	// Custom registry, this will be used by the /metrics endpoint and will only show the app metrics
 	registry := prometheus.NewRegistry()
 	// Add our custom registers to our custom registry

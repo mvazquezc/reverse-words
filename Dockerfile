@@ -1,8 +1,8 @@
-FROM docker.io/library/golang:1.18
+FROM docker.io/library/golang:1.22
 WORKDIR /go/src/github.com/mvazquezc/reverse-words/
 COPY main.go .
 COPY go.mod .
-RUN go get github.com/gorilla/mux && go get github.com/prometheus/client_golang/prometheus/promhttp
+RUN go mod tidy
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 
 FROM scratch
