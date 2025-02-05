@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
+	"flag"
 	"log"
 	"net/http"
 	"os"
@@ -40,11 +42,14 @@ var (
 	)
 )
 
-const version = "v0.0.27"
+const version = "v0.0.1"
 
 var (
 	buildTime = "NotSet"
 	gitCommit = "NotSet"
+	certFile  = ""
+	keyFile   = ""
+	useTLS    = false
 )
 
 // ReturnRelease returns the release configured by the user
@@ -131,7 +136,7 @@ func reverse(s string) string {
 	return string(runes)
 }
 
-func listen(port string, registry *prometheus.Registry) {
+func listen(port string, certFile string, keyFile string, registry *prometheus.Registry) {
 	log.Println("Listening on port", port)
 	router := chi.NewRouter()
 	router.Get("/", ReturnRelease)
@@ -140,7 +145,12 @@ func listen(port string, registry *prometheus.Registry) {
 	router.Get("/health", ReturnHealth)
 	router.Mount("/fullmetrics", promhttp.Handler()) // Default prometheus collector, includes other stuff on top of our custom registers
 	router.Mount("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
-	log.Fatal(http.ListenAndServe(":"+port, router))
+	if useTLS {
+		log.Fatal(http.ListenAndServeTLS(":"+port, certFile, keyFile, router))
+	} else {
+		log.Fatal(http.ListenAndServe(":"+port, router))
+	}
+
 }
 
 // getEnv returns the value for a given Env Var
@@ -151,9 +161,37 @@ func getEnv(varName, defaultValue string) string {
 	return defaultValue
 }
 
+func fileExists(file string) bool {
+	info, err := os.Stat(file)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return err == nil && !info.IsDir()
+}
+
+func validateTLSCerts(certFile string, keyFile string) error {
+	if certFile == "" && keyFile == "" {
+		return nil
+	}
+	certExists := fileExists(certFile)
+	keyExists := fileExists(keyFile)
+	if !certExists || !keyExists {
+		return errors.New("Cert file or key file not found")
+	}
+	useTLS = true
+	return nil
+}
+
 func main() {
 	release := getEnv("RELEASE", "NotSet")
 	port := getEnv("APP_PORT", "8080")
+	flag.StringVar(&certFile, "cert", "", "Path to TLS certificate file")
+	flag.StringVar(&keyFile, "key", "", "Path to TLS key file")
+	flag.Parse()
+	err := validateTLSCerts(certFile, keyFile)
+	if err != nil {
+		log.Fatalf("%s", err.Error())
+	}
 	log.Println("Starting Reverse Api", version, "Release:", release, "Commit", gitCommit, "Build", buildTime)
 	// Custom registry, this will be used by the /metrics endpoint and will only show the app metrics
 	registry := prometheus.NewRegistry()
@@ -164,5 +202,5 @@ func main() {
 	// Remove the go/process collectors from the default prometheus registry, this can be used to remove collectos from the default prometheus registry
 	//prometheus.Unregister(collectors.NewGoCollector())
 	//prometheus.Unregister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
-	listen(port, registry)
+	listen(port, certFile, keyFile, registry)
 }
