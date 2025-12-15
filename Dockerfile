@@ -1,4 +1,4 @@
-FROM docker.io/library/golang:1.22
+FROM docker.io/library/golang:1.23
 WORKDIR /go/src/github.com/mvazquezc/reverse-words/
 COPY main.go .
 COPY go.mod .
