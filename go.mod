@@ -3,7 +3,7 @@ module github.com/mvazquezc/reverse-words
 go 1.23
 
 require (
-	github.com/go-chi/chi/v5 v5.0.8
+	github.com/go-chi/chi/v5 v5.2.2
 	github.com/prometheus/client_golang v1.14.0
 )
 
