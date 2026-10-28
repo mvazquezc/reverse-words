@@ -1,9 +1,9 @@
 module github.com/mvazquezc/reverse-words
 
-go 1.23
+go 1.24
 
 require (
-	github.com/go-chi/chi/v5 v5.0.8
+	github.com/go-chi/chi/v5 v5.4.0
 	github.com/prometheus/client_golang v1.14.0
 )
 
